@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT(ruok, 0.15, radubrumariu@gmail.com)
+AC_INIT(ruok, 0.1, radubrumariu@gmail.com)
 AC_CONFIG_MACRO_DIR([m4])
 
 PKG_PROG_PKG_CONFIG

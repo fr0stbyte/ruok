@@ -5,7 +5,7 @@
 #include <config.h>
 #else
 #define PACKAGE_NAME "ruok"
-#define PACKAGE_VERSION "0.3"
+#define PACKAGE_VERSION "0.1"
 #endif
 
 namespace ruok {
