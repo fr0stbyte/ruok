@@ -5,6 +5,9 @@ A script to check where in the pipeline the problem exists, if at all.
 ## Libraries needed 
 * curl >= 7.21.0
 * libxml2 >= 2.7.8
+* automake >= 1.11.1
+* autoconf >= 2.68
+* m4 >= 1.4.16
 
 ## Compilation 
 
