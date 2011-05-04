@@ -4,7 +4,6 @@ A script to check where in the pipeline the problem exists, if at all.
 
 ## Libraries needed 
 * curl >= 7.21.0
-* boost >= 1.46.0
 * libxml2 >= 2.7.8
 
 ## Compilation 
@@ -54,4 +53,4 @@ DNS                 Connect             SSL                 Protocol            
 
 ## Thanks
 
-* Peter Ellehauge for a very cool name suggestion
+* Peter Ellehauge for a very cool name suggestion and testing

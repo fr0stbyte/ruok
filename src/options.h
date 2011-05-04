@@ -22,7 +22,6 @@ namespace ruok {
     size_t (*callback)(void*,size_t,size_t,void*);
   };
   
-  //  namespace po = boost::program_options;
 
   class OptionsParser {
   private:

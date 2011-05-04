@@ -113,7 +113,6 @@ namespace ruok {
       }
     }
     fseek(out->s, 0, SEEK_END);
-    //    std::cout << out->filename << std::endl;
     return fwrite(p, n, l, out->s);
   }
 
@@ -123,7 +122,6 @@ namespace ruok {
   void MainThread::start() {
     static int period = m_Cfg.period;
     int ret;
-    //    boost::thread_group tg;
  
     while(period > 0){
       for(int i=0;i<m_Cfg.rate;i++) {
@@ -137,6 +135,7 @@ namespace ruok {
 	  wait(&status);
       }
       period--;
+	  sleep(1);
     }
   }
 
