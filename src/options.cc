@@ -1,3 +1,20 @@
+/*
+    This file is part of ruok - a program that measures timings of transferring data with URL syntax
+    Copyright (C) 2011 by Radu Brumariu [brum76@gmail.com]
+    
+    ruok is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    ruok is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with ruok.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "requestthread.h"
 #include "options.h"
 
@@ -14,6 +31,7 @@ namespace ruok {
     { 
       m_config.callback = default_callback;
       m_config.xml = 0;
+      m_config.json = 0;
       m_config.verbose = 0L;
       m_config.no_header = 0;
       m_config.ms = 0;
@@ -29,8 +47,9 @@ namespace ruok {
     int c;
     static struct option longopts[] = 
       {
-	{ "help", no_argument, &m_config.help , 1 },
-	{ "miliseconds", no_argument, &m_config.ms, 1 },
+	{ "help", no_argument, 0 , 'h' },
+	{ "json", no_argument, 0, 'j' },
+	{ "miliseconds", no_argument, 0 , 'm' },
 	{ "no-header", no_argument, 0, 'n' },
 	{ "period", required_argument, 0, 'p' },
 	{ "rate", required_argument, 0, 'r' },
@@ -45,7 +64,7 @@ namespace ruok {
 
     while(1) {
       int idx = 0;
-      c = getopt_long(ac, av, "?hmnp:r:u:U:vVx" , longopts, &idx);
+      c = getopt_long(ac, av, "?hjmnp:r:u:U:vVx" , longopts, &idx);
       if (c == -1) { //end of options 
 	break;
       }
@@ -57,6 +76,10 @@ namespace ruok {
 	if(optarg) {
 	  std::cout << "Optarg : " << optarg << std::endl;
 	}
+	break;
+
+      case 'j':
+	m_config.json = 1;
 	break;
 
       case 'm':
@@ -123,8 +146,8 @@ namespace ruok {
       std::cout << "no header" << std::endl;
     }
 
-    if(m_config.xml){
-      m_config.callback = checkxml_callback;
+    if(m_config.xml || m_config.json){
+      m_config.callback = checkcontent_callback;
     }
 
     if(m_config.url == "") {
@@ -139,6 +162,7 @@ namespace ruok {
   void OptionsParser::printHelp(const char* prog) {
     std::cout << prog << "\n" \
 	      <<  "\t--help,h,?\t" << std::setfill(' ') << std::setw(10) << " - Displays this information\n" \
+	      <<  "\t--json,j\t" << std::setfill(' ') << std::setw(10) << " - Validate retrieved data through a JSON parser\n" \
 	      << "\t--miliseconds,m\t" << std::setw(10) << "- Displays times in miliseconds [ seconds is default ]\n" \
 	      << "\t--no-header,n" << std::setw(10) << "- When printing results don't print the header [ default on ]\n" \
 	      << "\t--period,p" << std::setw(10) << "- Time to run the tests in seconds [ default 10 ]\n" \

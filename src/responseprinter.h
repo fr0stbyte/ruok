@@ -1,3 +1,20 @@
+/*
+    This file is part of ruok - a program that measures timings of transferring data with URL syntax
+    Copyright (C) 2011 by Radu Brumariu [brum76@gmail.com]
+    
+    ruok is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    ruok is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with ruok.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #ifndef _RUOK_RESPONSEPRINTER_H
 #define _RUOK_RESPONSEPRINTER_H
 #include<list>
@@ -25,6 +42,7 @@ namespace ruok {
     double getDocumentSize(void);
     void setDocumentSize(double data);
     bool checkXML(std::string filename);
+    bool checkJSON(std::string filename);
     bool isvalid(std::string key);
 
     //operator to print out results

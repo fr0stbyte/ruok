@@ -1,6 +1,6 @@
 # R U OK
 
-A script to check where in the pipeline the problem exists, if at all.
+A program to measures timings of transferring data with URL syntax and helps identify where in the pipeline the problem exists, if at all.
 
 ## Libraries needed 
 * curl >= 7.21.0
@@ -11,7 +11,7 @@ A script to check where in the pipeline the problem exists, if at all.
 
 ## Compilation 
 
-1. ./autogen.sh
+1. autoreconf -i
 2. ./configure [ params ]
 3. make 
 

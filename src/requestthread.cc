@@ -1,3 +1,21 @@
+/*
+    This file is part of ruok - a program that measures timings of transferring data with URL syntax
+    Copyright (C) 2011 by Radu Brumariu [brum76@gmail.com]
+    
+    ruok is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    ruok is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with ruok.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include<list>
 #include<cstdio>
 #include "requestthread.h"
@@ -10,16 +28,16 @@ namespace ruok {
   CURLINFO timers[] = { CURLINFO_NAMELOOKUP_TIME, CURLINFO_CONNECT_TIME, CURLINFO_APPCONNECT_TIME, CURLINFO_PRETRANSFER_TIME, CURLINFO_STARTTRANSFER_TIME, CURLINFO_TOTAL_TIME };
 
   int processRequest(struct config *C) {
-
+    int ret = EXIT_FAILURE;
     CURL* handle;
     CURLcode res;
     std::list<double> results;
     struct tmpfile tfile = {tmpnam(NULL), NULL};
     int factor = (C->ms)?1000:1;
   
-   handle = curl_easy_init();
+    handle = curl_easy_init();
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, C->callback);
-    if(C->xml) {
+    if(C->xml || C->json) {
       curl_easy_setopt(handle, CURLOPT_WRITEDATA, &tfile);
     } else {
       curl_easy_setopt(handle, CURLOPT_WRITEDATA, NULL);
@@ -61,21 +79,26 @@ namespace ruok {
       } else {
 	rp.setDocumentSize(result);
       }
-      
-      
-      if(tfile.s){
-	rp.checkXML(tfile.filename);
+
+      if(tfile.s) {
+	if(C->xml) {
+	  rp.checkXML(tfile.filename);
+	}
+	  
+	if(C->json) {
+	  rp.checkJSON(tfile.filename);
+	}
 	fclose(tfile.s);
       }
       
       r = curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &rcode);
-      if(CURLE_OK != r) { rcode = -1; }
-      curl_easy_cleanup(handle);
+      if(CURLE_OK != r) { rcode = -1; }   
       rp.addResponseCode(rcode);
       std::cout << rp ;
-      return EXIT_SUCCESS;
+      ret = EXIT_SUCCESS;
     }
-    return EXIT_FAILURE;
+    curl_easy_cleanup(handle);
+    return ret;
   }
 
   void printHeader(struct config C) {
@@ -88,6 +111,9 @@ namespace ruok {
     std::cout << std::left << std::setfill(' ') << std::setw(20) << "Total";
     std::cout << std::left << std::setfill(' ') << std::setw(20) << "Bytes";
     std::cout << std::left << std::setfill(' ') << std::setw(20) << "Return code";
+    if(C.json){
+      std::cout << std::left << std::setfill(' ') << std::setw(20) << "JSON";
+    }
     if(C.xml){
       std::cout << std::left << std::setfill(' ') << std::setw(20) << "XML";
     }
@@ -103,8 +129,7 @@ namespace ruok {
   }
 
 
-  size_t checkxml_callback(void *p, size_t n, size_t l, void *d) {
-    int i;
+  size_t checkcontent_callback(void *p, size_t n, size_t l, void *d) {
     struct tmpfile *out = (struct tmpfile*)d;
     if(out && !out->s) {
       out->s = fopen(out->filename, "wb+");
@@ -113,7 +138,7 @@ namespace ruok {
       }
     }
     fseek(out->s, 0, SEEK_END);
-    return fwrite(p, n, l, out->s);
+    fwrite(p, n, l, out->s);
   }
 
   MainThread::MainThread(struct config Cfg)
@@ -121,22 +146,31 @@ namespace ruok {
 
   void MainThread::start() {
     static int period = m_Cfg.period;
+    std::list<pid_t> pids;
     int ret;
  
-    while(period > 0){
-      for(int i=0;i<m_Cfg.rate;i++) {
-	if(!fork()) {  // child
-	  ret = ruok::processRequest(&m_Cfg);
-	  _exit(ret);
+    while(period > 0) {
+      useconds_t sl = (useconds_t)(1.0*1000/m_Cfg.rate);
+      for(int i=0; i < m_Cfg.rate; i++) {
+	  //	  std::cout << " Count : " << i << " Period : " << period << std::endl;
+	  pid_t pid = fork();
+	  if(pid > 0) {  // parent
+	    usleep(sl);
+	    int status;
+	    while(waitpid(-1, &status, WNOHANG) > 0) { 1; }
+	  } else if(pid == 0) { // child 
+	    ret = ruok::processRequest(&m_Cfg);
+	    _exit(ret);
+	  } else { // failure to fork
+	  perror("Failed to fork : ");
+	  exit(EXIT_FAILURE);
+	  }
 	}
-      }
-      for(int i=0; i<m_Cfg.rate;i++) { // parent 
-	  int status;
-	  wait(&status);
+	int status;
+	while(waitpid(-1, &status, 0) > 0) { 1; }
       }
       period--;
-	  sleep(1);
     }
-  }
+  
 
 } // end namespace 
