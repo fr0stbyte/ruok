@@ -23,7 +23,7 @@
 #include "responseprinter.h"
 
 // forward declaration for libjson validator
-extern "C" unsigned char parse_and_report(const char *filename);
+extern "C" int parse_and_report(const char *filename);
 
 namespace ruok {
 
