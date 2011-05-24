@@ -43,7 +43,7 @@ namespace ruok {
       m_config.help = 0;
     }
 
-  int OptionsParser::parse(int ac, char** av) {
+  void OptionsParser::parse(int ac, char** av) {
     int c;
     static struct option longopts[] = 
       {

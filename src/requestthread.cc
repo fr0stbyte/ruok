@@ -18,6 +18,7 @@
 
 #include<list>
 #include<cstdio>
+#include<curl/curl.h>
 #include "requestthread.h"
 #include "options.h"
 #include "responseprinter.h"
@@ -138,7 +139,8 @@ namespace ruok {
       }
     }
     fseek(out->s, 0, SEEK_END);
-    fwrite(p, n, l, out->s);
+    size_t ret = fwrite(p, n, l, out->s);
+    return ret;
   }
 
   MainThread::MainThread(struct config Cfg)
@@ -157,7 +159,7 @@ namespace ruok {
 	  if(pid > 0) {  // parent
 	    usleep(sl);
 	    int status;
-	    while(waitpid(-1, &status, WNOHANG) > 0) { 1; }
+	    while(waitpid(-1, &status, WNOHANG) > 0) { ; }
 	  } else if(pid == 0) { // child 
 	    ret = ruok::processRequest(&m_Cfg);
 	    _exit(ret);
@@ -167,7 +169,7 @@ namespace ruok {
 	  }
 	}
 	int status;
-	while(waitpid(-1, &status, 0) > 0) { 1; }
+	while(waitpid(-1, &status, 0) > 0) { ; }
       }
       period--;
     }

@@ -47,7 +47,7 @@ namespace ruok {
 
   public:
     OptionsParser();
-    int parse(int ac, char** av);
+    void parse(int ac, char** av);
     struct config getConfig() { return m_config; };
     void printHelp(const char* prog);
   };
