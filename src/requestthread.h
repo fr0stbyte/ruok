@@ -29,8 +29,8 @@
 namespace ruok {
 
   struct tmpfile {
-    const char* filename;
-    FILE* s;
+    int fd;
+    FILE* fp;
   };
 
   int processRequest(struct config *C);

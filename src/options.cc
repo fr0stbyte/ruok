@@ -15,8 +15,10 @@
     You should have received a copy of the GNU General Public License
     along with ruok.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include<cstdlib>
 #include "requestthread.h"
 #include "options.h"
+
 
 #if HAVE_CONFIG_H
 #include <config.h>
@@ -33,6 +35,7 @@ namespace ruok {
       m_config.xml = 0;
       m_config.json = 0;
       m_config.verbose = 0L;
+      m_config.follow_redirects = 0;
       m_config.no_header = 0;
       m_config.ms = 0;
       m_config.version = 0;
@@ -41,13 +44,16 @@ namespace ruok {
       m_config.rate = 1;
       m_config.period = 10;
       m_config.help = 0;
+      m_config.headers = NULL;
     }
 
   void OptionsParser::parse(int ac, char** av) {
     int c;
     static struct option longopts[] = 
       {
+        { "follow", no_argument, 0, 'f' },
 	{ "help", no_argument, 0 , 'h' },
+	{ "Header", required_argument, 0, 'H' },
 	{ "json", no_argument, 0, 'j' },
 	{ "miliseconds", no_argument, 0 , 'm' },
 	{ "no-header", no_argument, 0, 'n' },
@@ -64,7 +70,7 @@ namespace ruok {
 
     while(1) {
       int idx = 0;
-      c = getopt_long(ac, av, "?hjmnp:r:u:U:vVx" , longopts, &idx);
+      c = getopt_long(ac, av, "?fhH:jmnp:r:u:U:vVx" , longopts, &idx);
       if (c == -1) { //end of options 
 	break;
       }
@@ -78,8 +84,16 @@ namespace ruok {
 	}
 	break;
 
+      case 'f':
+        m_config.follow_redirects = 1;
+        break;
+
       case 'j':
 	m_config.json = 1;
+	break;
+
+      case 'H':
+        m_config.headers = curl_slist_append(m_config.headers, optarg);
 	break;
 
       case 'm':
@@ -161,16 +175,18 @@ namespace ruok {
 
   void OptionsParser::printHelp(const char* prog) {
     std::cout << prog << "\n" \
-	      <<  "\t--help,h,?\t" << std::setfill(' ') << std::setw(10) << " - Displays this information\n" \
-	      <<  "\t--json,j\t" << std::setfill(' ') << std::setw(10) << " - Validate retrieved data through a JSON parser\n" \
-	      << "\t--miliseconds,m\t" << std::setw(10) << "- Displays times in miliseconds [ seconds is default ]\n" \
-	      << "\t--no-header,n" << std::setw(10) << "- When printing results don't print the header [ default on ]\n" \
-	      << "\t--period,p" << std::setw(10) << "- Time to run the tests in seconds [ default 10 ]\n" \
-	      << "\t--rate,r"<< std::setw(10) << "- Rate of requests per second [ default 1 ]\n" \
-	      << "\t--url,u" << std::setw(10) << "- Url to connect to [ required ]\n" \
-	      << "\t--user-agent,U" << std::setw(10) << "- User agent to use\n" \
-	      << "\t--verbose,v" << std::setw(10) << "- Be verbose\n" \
-	      << "\t--version,V" << std::setw(10) << "- Print version\n" \
+              <<  "\t--follow,f\t" << std::setfill(' ') << std::setw(10) << "  Follow redirects\n" \
+	      <<  "\t--help,h,?\t" << std::setfill(' ') << std::setw(10) << "  Displays this information\n" \
+              <<  "\t--Header,H\t" << std::setfill(' ') << std::setw(10) << "  Add a Header directive \n" \
+	      <<  "\t--json,j\t" << std::setfill(' ') << std::setw(10) << "  Validate retrieved data through a JSON parser\n" \
+	      << "\t--miliseconds,m\t" << std::setw(10) << "  Displays times in miliseconds [ seconds is default ]\n" \
+	      << "\t--no-header,n" << std::setw(10) << "  When printing results don't print the header [ default on ]\n" \
+	      << "\t--period,p" << std::setw(10) << "  Time to run the tests in seconds [ default 10 ]\n" \
+	      << "\t--rate,r"<< std::setw(10) << "  Rate of requests per second [ default 1 ]\n" \
+	      << "\t--url,u" << std::setw(10) << "  Url to connect to [ required ]\n" \
+	      << "\t--user-agent,U" << std::setw(10) << "  User agent to use\n" \
+	      << "\t--verbose,v" << std::setw(10) << "  Be verbose\n" \
+	      << "\t--version,V" << std::setw(10) << "  Print version\n" \
 	      << "\t--xml,x\t-\tValidate retrieved data through an XML parser" << std::endl;
   }
 

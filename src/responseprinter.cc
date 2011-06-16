@@ -23,7 +23,7 @@
 #include "responseprinter.h"
 
 // forward declaration for libjson validator
-extern "C" int parse_and_report(const char *filename);
+extern "C" int parse_and_report(FILE *fp);
 
 namespace ruok {
 
@@ -59,7 +59,7 @@ namespace ruok {
     responseCode = code;
   }
 
-  bool ResponsePrinter::checkXML(std::string filename){
+  bool ResponsePrinter::checkXML(int fd){
     xmlParserCtxtPtr ctxt;
     xmlDocPtr doc;
     valids["xml"] = false;
@@ -68,7 +68,7 @@ namespace ruok {
       return valids["xml"];
     }
 
-    doc = xmlCtxtReadFile(ctxt, filename.c_str(), NULL, XML_PARSE_DTDVALID|XML_PARSE_NOERROR);
+    doc = xmlCtxtReadFd(ctxt, fd, NULL, NULL, XML_PARSE_DTDVALID|XML_PARSE_NOERROR);
 
     if(doc == NULL) {
       valids["xml"] = false;
@@ -82,11 +82,12 @@ namespace ruok {
 
     xmlCleanupParser();
 
+	return valids["xml"];
   }
 
-  bool ResponsePrinter::checkJSON(std::string filename) {
+  bool ResponsePrinter::checkJSON(FILE* fp) {
     valids["json"] = false;
-    if(parse_and_report(filename.c_str()) == 0) {
+    if(parse_and_report(fp) == 0) {
        valids["json"] = true; 
     } else { 
       valids["json"] = false; 

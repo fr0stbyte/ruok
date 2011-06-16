@@ -18,6 +18,8 @@
 
 #include<list>
 #include<cstdio>
+#include<cstdlib>
+#include<sys/wait.h>
 #include<curl/curl.h>
 #include "requestthread.h"
 #include "options.h"
@@ -26,14 +28,19 @@
 namespace ruok {
   
   //struct config;
-  CURLINFO timers[] = { CURLINFO_NAMELOOKUP_TIME, CURLINFO_CONNECT_TIME, CURLINFO_APPCONNECT_TIME, CURLINFO_PRETRANSFER_TIME, CURLINFO_STARTTRANSFER_TIME, CURLINFO_TOTAL_TIME };
+  CURLINFO timers[] = { CURLINFO_NAMELOOKUP_TIME, CURLINFO_CONNECT_TIME, CURLINFO_APPCONNECT_TIME, CURLINFO_PRETRANSFER_TIME, CURLINFO_STARTTRANSFER_TIME, CURLINFO_TOTAL_TIME, CURLINFO_REDIRECT_TIME };
 
   int processRequest(struct config *C) {
     int ret = EXIT_FAILURE;
     CURL* handle;
     CURLcode res;
     std::list<double> results;
-    struct tmpfile tfile = {tmpnam(NULL), NULL};
+    char tempfile[] = "/tmp/ruokXXXXXX";
+    struct tmpfile tfile = {0,NULL};
+    tfile.fd = mkstemp(tempfile);
+    if(tfile.fd) {
+      tfile.fp = fdopen(tfile.fd, "wb+");
+    } 
     int factor = (C->ms)?1000:1;
   
     handle = curl_easy_init();
@@ -43,12 +50,27 @@ namespace ruok {
     } else {
       curl_easy_setopt(handle, CURLOPT_WRITEDATA, NULL);
     }
+    
+    if(C->headers) {
+      curl_easy_setopt(handle, CURLOPT_HTTPHEADER, C->headers);
+    }
     curl_easy_setopt(handle, CURLOPT_VERBOSE, long(C->verbose));
     curl_easy_setopt(handle, CURLOPT_USERAGENT, C->ua.c_str());
     curl_easy_setopt(handle, CURLOPT_URL, C->url.c_str());
- 
+
+    // automatically set referer when it follows a Location:redirect:
+    curl_easy_setopt(handle, CURLOPT_AUTOREFERER, 1L);
+
+    // follow Location ( redirects ) 
+    if( C->follow_redirects ) {
+      curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1);
+    }
+
     res = curl_easy_perform(handle);  
 
+    if(C->headers){
+      curl_slist_free_all(C->headers);
+    }
     if(CURLE_OK == res) {
       CURLcode r;
       double result;
@@ -58,7 +80,7 @@ namespace ruok {
       ResponsePrinter rp = ResponsePrinter();
       last = 0;
       
-      for( int j = 0; j<= 4; j++) {
+      for( int j = 0; j<=4; j++) {
 	r = curl_easy_getinfo(handle, timers[j] , &result);
 	if(CURLE_OK != r || result == 0) { 
 	  rp.addTiming(result*factor);
@@ -73,6 +95,12 @@ namespace ruok {
       } else {
 	rp.addTiming(result*factor);
       }
+      r = curl_easy_getinfo(handle, CURLINFO_REDIRECT_TIME, &result);
+      if(CURLE_OK != r) { 
+	rp.addTiming(-1);
+      } else {
+	rp.addTiming(result*factor);
+      }
       
       r = curl_easy_getinfo(handle, CURLINFO_SIZE_DOWNLOAD, &result);
       if(CURLE_OK != r) { 
@@ -81,15 +109,15 @@ namespace ruok {
 	rp.setDocumentSize(result);
       }
 
-      if(tfile.s) {
+      if(tfile.fp) {
 	if(C->xml) {
-	  rp.checkXML(tfile.filename);
+	  rp.checkXML(tfile.fd);
 	}
 	  
 	if(C->json) {
-	  rp.checkJSON(tfile.filename);
+	  rp.checkJSON(tfile.fp);
 	}
-	fclose(tfile.s);
+	fclose(tfile.fp);
       }
       
       r = curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &rcode);
@@ -109,7 +137,8 @@ namespace ruok {
     std::cout << std::left << std::setfill(' ') << std::setw(20) << "SSL";
     std::cout << std::left << std::setfill(' ') << std::setw(20) << "Protocol";
     std::cout << std::left << std::setfill(' ') << std::setw(20) << "First byte";
-    std::cout << std::left << std::setfill(' ') << std::setw(20) << "Total";
+    std::cout << std::left << std::setfill(' ') << std::setw(20) << "Total";  
+    std::cout << std::left << std::setfill(' ') << std::setw(20) << "Redirect";
     std::cout << std::left << std::setfill(' ') << std::setw(20) << "Bytes";
     std::cout << std::left << std::setfill(' ') << std::setw(20) << "Return code";
     if(C.json){
@@ -132,14 +161,14 @@ namespace ruok {
 
   size_t checkcontent_callback(void *p, size_t n, size_t l, void *d) {
     struct tmpfile *out = (struct tmpfile*)d;
-    if(out && !out->s) {
-      out->s = fopen(out->filename, "wb+");
-      if(!out->s){
+    /*    if(out && !out->fd) {
+      out->fp = fdopen(out->fd, "wb+");
+      if(!out->fp){
 	return -1;
       }
-    }
-    fseek(out->s, 0, SEEK_END);
-    size_t ret = fwrite(p, n, l, out->s);
+      }*/
+    fseek(out->fp, 0, SEEK_END);
+    size_t ret = fwrite(p, n, l, out->fp);
     return ret;
   }
 

@@ -22,23 +22,21 @@
 #include "json_scanner.h"
 
 extern int yyparse(yyscan_t scanner);
-int parse_and_report(const char *);
+int parse_and_report(FILE *f);
 
-int parse_and_report(const char *filename)
+int parse_and_report(FILE *f)
 {
 	yyscan_t scanner;
-	FILE *f;
 	int err = 0;
 
-	f = fopen(filename, "r");
 	if(!f) {
-	  perror(filename);
+	  perror("failed");
 	  return 1;
 	}
 
 	yylex_init(&scanner);
 	yyset_in(f, scanner);
-	yyset_extra((void *) filename, scanner);
+	//	yyset_extra((void *) filename, scanner);
 #ifdef DEBUG
 	yyset_debug(1, scanner);
 #endif

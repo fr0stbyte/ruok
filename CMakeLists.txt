@@ -42,7 +42,7 @@ FIND_PACKAGE(FLEX REQUIRED)
 #find_library(CURL_LIBRARY NAMES curl libcurl)
 #find_library(LIBXML2_LIBRARY NAMES libxml2)
 
-# set(CMAKE_CXX_FLAGS "-Wall")
+set(CMAKE_CXX_FLAGS "-Wall")
 
 add_subdirectory(libs)
 add_subdirectory(src)

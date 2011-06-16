@@ -32,7 +32,9 @@ namespace ruok {
     int period;
     int no_header;
     int ms;
+    int follow_redirects;
     std::string ua;
+    struct curl_slist* headers;
     std::string url;
     int verbose;
     int version;

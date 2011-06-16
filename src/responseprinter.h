@@ -41,8 +41,8 @@ namespace ruok {
     long getResponseCode(void);
     double getDocumentSize(void);
     void setDocumentSize(double data);
-    bool checkXML(std::string filename);
-    bool checkJSON(std::string filename);
+    bool checkXML(int fd);
+    bool checkJSON(FILE* fp);
     bool isvalid(std::string key);
 
     //operator to print out results
