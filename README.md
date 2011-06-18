@@ -4,7 +4,7 @@ A program to measures timings of transferring data with URL syntax and helps ide
 
 ## Libraries needed 
 * curl >= 7.21.0
-* libxml2 >= 2.7.8
+* libxml2 >= 2.7.8 ( not required )
 * cmake >= 2.6
 
 ## Compilation 
