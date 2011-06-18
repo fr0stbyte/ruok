@@ -17,6 +17,7 @@
 */
 #ifndef _RUOK_RESPONSEPRINTER_H
 #define _RUOK_RESPONSEPRINTER_H
+#include "config.h"
 #include<list>
 #include<map>
 #include<string>
@@ -41,7 +42,9 @@ namespace ruok {
     long getResponseCode(void);
     double getDocumentSize(void);
     void setDocumentSize(double data);
+#ifdef LIBXML2_FOUND
     bool checkXML(int fd);
+#endif
     bool checkJSON(FILE* fp);
     bool isvalid(std::string key);
 

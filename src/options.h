@@ -22,6 +22,7 @@
 #include<string>
 #include<curl/curl.h>
 #include<getopt.h>
+#include "config.h"
 
 namespace ruok {
 
@@ -38,7 +39,9 @@ namespace ruok {
     std::string url;
     int verbose;
     int version;
+#ifdef LIBXML2_FOUND
     int xml;
+#endif
     size_t (*callback)(void*,size_t,size_t,void*);
   };
   

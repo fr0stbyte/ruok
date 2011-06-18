@@ -19,20 +19,14 @@
 #include "requestthread.h"
 #include "options.h"
 
-
-#if HAVE_CONFIG_H
-#include <config.h>
-#else
-#define PACKAGE_NAME "ruok"
-#define PACKAGE_VERSION "0.1"
-#endif
-
 namespace ruok {
 
   OptionsParser::OptionsParser() 
     { 
       m_config.callback = default_callback;
+#ifdef LIBXML2_FOUND
       m_config.xml = 0;
+#endif
       m_config.json = 0;
       m_config.verbose = 0L;
       m_config.follow_redirects = 0;
@@ -63,7 +57,9 @@ namespace ruok {
 	{ "user-agent", required_argument, 0, 'U' },
 	{ "verbose", no_argument, 0, 'v' },
 	{ "version", no_argument, 0, 'V' },
+#ifdef LIBXML2_FOUND
 	{ "xml", no_argument, 0, 'x' },
+#endif
 	{0, 0, 0, 0}
       };
 
@@ -132,9 +128,11 @@ namespace ruok {
 	m_config.version = 1;
 	break;
 
+#ifdef LIBXML2_FOUND
       case 'x':
 	m_config.xml = 1;
 	break;
+#endif
 
       case 'h':
       case '?':
@@ -159,10 +157,15 @@ namespace ruok {
     if(m_config.no_header){
       std::cout << "no header" << std::endl;
     }
-
+#ifdef LIBXML2_FOUND
     if(m_config.xml || m_config.json){
       m_config.callback = checkcontent_callback;
     }
+#else
+    if(m_config.json){
+      m_config.callback = checkcontent_callback;
+    }
+#endif
 
     if(m_config.url == "") {
       std::cout << "No url provided -- giving up" << std::endl;
@@ -186,8 +189,12 @@ namespace ruok {
 	      << "\t--url,u" << std::setw(10) << "  Url to connect to [ required ]\n" \
 	      << "\t--user-agent,U" << std::setw(10) << "  User agent to use\n" \
 	      << "\t--verbose,v" << std::setw(10) << "  Be verbose\n" \
-	      << "\t--version,V" << std::setw(10) << "  Print version\n" \
-	      << "\t--xml,x\t-\tValidate retrieved data through an XML parser" << std::endl;
+	      << "\t--version,V" << std::setw(10) << "  Print version\n";
+#ifdef LIBXML2_FOUND
+    std::cout << "\t--xml,x\t-\tValidate retrieved data through an XML parser";
+#endif
+      std::cout << std::endl;
+
   }
 
 }

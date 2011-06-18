@@ -15,10 +15,15 @@
     You should have received a copy of the GNU General Public License
     along with ruok.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "config.h"
 #include<fstream>
 #include<iomanip>
+
+#ifdef LIBXML2_FOUND
 #include<libxml/parser.h>
 #include<libxml/tree.h>
+#endif
+
 
 #include "responseprinter.h"
 
@@ -59,6 +64,7 @@ namespace ruok {
     responseCode = code;
   }
 
+#ifdef LIBXML2_FOUND
   bool ResponsePrinter::checkXML(int fd){
     xmlParserCtxtPtr ctxt;
     xmlDocPtr doc;
@@ -84,6 +90,7 @@ namespace ruok {
 
 	return valids["xml"];
   }
+#endif
 
   bool ResponsePrinter::checkJSON(FILE* fp) {
     valids["json"] = false;

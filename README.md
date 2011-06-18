@@ -5,20 +5,22 @@ A program to measures timings of transferring data with URL syntax and helps ide
 ## Libraries needed 
 * curl >= 7.21.0
 * libxml2 >= 2.7.8
-* automake >= 1.11.1
-* autoconf >= 2.68
-* m4 >= 1.4.16
+* cmake >= 2.6
 
 ## Compilation 
 
-1. autoreconf -i
-2. ./configure [ params ]
-3. make 
+1. cmake .
+2. make 
+3. make install
 
 ## Parameters
 <pre>
    Allowed options:
+     -f [ --follow ]                       Follow redirects
      -h [ --help ]                         Displays this information
+     -H [ --Header ] arg ( "Host:www.example.com" )     Stackable parameter to pass HTTP headers to the request
+     -j [ --json ]                         Verify JSON validity
+     -m [ --miliseconds ]                  Display timings in miliseconds ( default seconds )
      -n [ --no-header ]                    Do not display the header
      -p [ --period ] arg (=10)             Period in seconds
      -r [ --rate ] arg (=1)                Rate of requests per second

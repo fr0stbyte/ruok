@@ -25,6 +25,8 @@
 #include "options.h"
 #include "responseprinter.h"
 
+#include "config.h"
+
 namespace ruok {
   
   //struct config;
@@ -45,7 +47,11 @@ namespace ruok {
   
     handle = curl_easy_init();
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, C->callback);
+#ifdef LIBXML2_FOUND
     if(C->xml || C->json) {
+#else
+    if(C->json) {
+#endif
       curl_easy_setopt(handle, CURLOPT_WRITEDATA, &tfile);
     } else {
       curl_easy_setopt(handle, CURLOPT_WRITEDATA, NULL);
@@ -110,10 +116,11 @@ namespace ruok {
       }
 
       if(tfile.fp) {
+#ifdef LIBXML2_FOUND
 	if(C->xml) {
 	  rp.checkXML(tfile.fd);
 	}
-	  
+#endif	  
 	if(C->json) {
 	  rp.checkJSON(tfile.fp);
 	}
@@ -144,9 +151,11 @@ namespace ruok {
     if(C.json){
       std::cout << std::left << std::setfill(' ') << std::setw(20) << "JSON";
     }
+#ifdef LIBXML2_FOUND
     if(C.xml){
       std::cout << std::left << std::setfill(' ') << std::setw(20) << "XML";
     }
+#endif
     std::cout << std::endl;
   }
 
