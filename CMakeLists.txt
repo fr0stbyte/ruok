@@ -43,6 +43,8 @@ FIND_PACKAGE(FLEX REQUIRED)
 #find_library(LIBXML2_LIBRARY NAMES libxml2)
 
 set(CMAKE_CXX_FLAGS "-Wall")
+SET(CMAKE_BUILD_TYPE debug)
+SET(CMAKE_CXX_FLAGS_DISTRIBUTION "-g")
 
 add_subdirectory(libs)
 add_subdirectory(src)

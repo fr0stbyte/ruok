@@ -181,9 +181,8 @@ namespace ruok {
     int ret;
  
     while(period > 0) {
-      useconds_t sl = (useconds_t)(1.0*1000/m_Cfg.rate);
+      useconds_t sl = (useconds_t)(1.0*1000000/m_Cfg.rate);
       for(int i=0; i < m_Cfg.rate; i++) {
-	  //	  std::cout << " Count : " << i << " Period : " << period << std::endl;
 	  pid_t pid = fork();
 	  if(pid > 0) {  // parent
 	    usleep(sl);
@@ -193,15 +192,16 @@ namespace ruok {
 	    ret = ruok::processRequest(&m_Cfg);
 	    _exit(ret);
 	  } else { // failure to fork
-	  perror("Failed to fork : ");
-	  exit(EXIT_FAILURE);
+	    perror("Failed to fork : ");
+	    exit(EXIT_FAILURE);
 	  }
-	}
-	int status;
-	while(waitpid(-1, &status, 0) > 0) { ; }
       }
+      int status;
+      while(waitpid(-1, &status, 0) > 0) { ; }
       period--;
     }
+    
+  }
   
 
 } // end namespace 
